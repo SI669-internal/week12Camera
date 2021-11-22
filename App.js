@@ -83,13 +83,12 @@ function CameraScreen({navigation}) {
       <Camera 
         style={styles.camera}
         ratio='4:3'
-        pictureSize='640x480'
         ref={ref => theCamera = ref}
       />
       <TouchableOpacity 
         style={styles.cameraControls}
         onPress={async ()=>{
-          let picData = await theCamera.takePictureAsync();
+          let picData = await theCamera.takePictureAsync({quality: 0.2});
           dataModel.updateImage(picData);
           navigation.goBack();
         }}>
