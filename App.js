@@ -6,23 +6,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Camera } from 'expo-camera';
 
+import { LoginScreen } from './LoginScreen';
 import { getDataModel } from './DataModel';
+import { getAuth, signOut } from '@firebase/auth';
 
-
-function ImageScreen () {
-  return (
-    <View style={styles.container}>
-      <Image
-        style={styles.logo}
-        source={require('./assets/ImageNotAvailable.png')}
-      />
-      <Image
-        style={styles.logo}
-        source={{uri: 'https://reactnative.dev/img/tiny_logo.png'}}
-      />
-    </View>
-  );
-}
+const auth = getAuth();
 
 function MainScreen({navigation}) {
 
@@ -31,6 +19,7 @@ function MainScreen({navigation}) {
 
   // initialize state with the placeholder image
   const [image, setImage] = useState(require('./assets/ImageNotAvailable.png'));
+  const [userDisplayName, setUserDisplayName] = useState('User');
 
   // subscribe to updates, specifying the callback
   useEffect(()=>{
@@ -38,10 +27,22 @@ function MainScreen({navigation}) {
       console.log('updating image', imageObj);
       setImage(imageObj);
     });
+    dataModel.addUserSnapshotListener(async () => {
+      console.log('getting current user info');
+      setUserDisplayName(await dataModel.getCurrentUserDisplayName());
+    });
   }, []);
 
   return (
     <View style={styles.container}>
+      <Text> Hi, {userDisplayName}! </Text>
+      <Button
+        title='Sign out'
+        onPress={()=> {
+          dataModel.disconnectOnSignout();
+          signOut(auth)
+        }}
+      />
       <Image
         style={styles.mainImage}
         source={image}
@@ -105,8 +106,10 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        initialRouteName="Main"   
+        initialRouteName="Login"   
+        screenOptions={{headerShown: false}}
       >
+        <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Main" component={MainScreen} />
         <Stack.Screen name="Camera" component={CameraScreen} />
       </Stack.Navigator>
@@ -115,8 +118,6 @@ function App() {
 }
 
 export default App;
-
-
 
 const styles = StyleSheet.create({
   container: {
